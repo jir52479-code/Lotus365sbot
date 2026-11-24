@@ -1,12 +1,22 @@
-FROM php:8.2-apache
+FROM php:8.3-cli-alpine
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libcurl4-openssl-dev \
-    libonig-dev \
-    && docker-php-ext-install curl mbstring \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    curl \
+    libcurl \
+    ca-certificates \
+    poppler-utils \
+    tzdata
 
-WORKDIR /var/www/html
-COPY . /var/www/html/
+ENV TZ=Asia/Kolkata
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN mkdir -p /var/www/html/data && chown -R www-data:www-data /var/www/html
+RUN docker-php-ext-install curl
+
+WORKDIR /app
+
+COPY . /app
+
+RUN mkdir -p /app/data && chmod -R 777 /app/data
+
+CMD ["php", "/app/bot.php"]
+
