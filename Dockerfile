@@ -1,3 +1,4 @@
+cat << 'EOF' > Dockerfile
 FROM php:8.3-cli-alpine
 
 RUN apk add --no-cache \
@@ -19,4 +20,7 @@ COPY . /app
 RUN mkdir -p /app/data && chmod -R 777 /app/data
 
 CMD ["php", "/app/bot.php"]
+EOF
+docker build -t bot-runner .
+
 
