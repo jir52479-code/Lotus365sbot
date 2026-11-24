@@ -1,26 +1,23 @@
-cat << 'EOF' > Dockerfile
-FROM php:8.3-cli-alpine
+FROM php:8.2-apache
 
-RUN apk add --no-cache \
-    curl \
-    libcurl \
-    ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcurl4-openssl-dev \
+    libonig-dev \
     poppler-utils \
-    tzdata
+    && docker-php-ext-install curl mbstring \
+    && a2enmod rewrite \
+    && rm -rf /var/lib/apt/lists/*
 
-ENV TZ=Asia/Kolkata
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+ENV PORT=10000
+RUN sed -i "s/80/${PORT}/g" /etc/apache2/ports.conf /etc/apache2/sites-available/000-default.conf
 
-RUN docker-php-ext-install curl
+WORKDIR /var/www/html
+COPY . /var/www/html/
 
-WORKDIR /app
+RUN mkdir -p /var/www/html/data && chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
 
-COPY . /app
+EXPOSE 10000
+CMD ["apache2-foreground"]
 
-RUN mkdir -p /app/data && chmod -R 777 /app/data
-
-CMD ["php", "/app/bot.php"]
-EOF
-docker build -t bot-runner .
 
 
